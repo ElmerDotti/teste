@@ -1,0 +1,31 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: database
+    ports:
+      - "5432:5432"
+
+  prisma:
+    image: node:16
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: ["npx", "prisma", "migrate", "deploy"]
+    depends_on:
+      - db
+
+  analysis_service:
+    build: .
+    depends_on:
+      - prisma
+    environment:
+      OPENAI_API_KEY: "sua-chave-aqui"
+      DATABASE_URL: "postgresql://user:password@db:5432/database"
+    ports:
+      - "8000:8000"
